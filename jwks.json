@@ -1,0 +1,12 @@
+{
+  "keys": [
+    {
+      "kty": "RSA",
+      "use": "sig",
+      "kid": "data-market-key-1",
+      "alg": "RS256",
+      "n": "\rMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtWHH5Xvcvqv2pMIh+P5W\rGzbrFdVYtFBBCOvvzNEaE1Zu6VRm25T/kaj65s7bfH0+iH9gL3rdl84v/hL82C6Q\rv0CNrLiT/X2JRTOXlNFg6xXSUNci6aCCHt+4U1YWl0wSWBVeeVCAIAxx5aS+nOGE\rEzvbs6Yc+XamhiGrche/1KPNtq9AIXAKhopzFYv+fLYUoRgzI6gsbPxHQNv5t8OA\rm2r8zE9THYeH7giKLd059raL0/YMI10bpmXuJ2xf8p/ICw/I6oWTGbVg+jaNRSlI\rL/M3lvneq1lv038NyqKkgT0eLNYqSQTJw8yjRsLKq/qtQ2txxRgToledn74BpYMi\rUQIDAQAB\r\r",
+      "e": "AQAB"
+    }
+  ]
+}

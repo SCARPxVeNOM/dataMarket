@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@mocanetwork/airkit": "^1.6.0"
+  }
+}

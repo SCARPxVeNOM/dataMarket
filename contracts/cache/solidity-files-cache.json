@@ -1,0 +1,42 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "C:\\Users\\aryan\\Desktop\\DataMarket\\contracts\\contracts\\DataEscrow.sol": {
+      "lastModificationDate": 1758804804096,
+      "contentHash": "76296f721f8f2dcbfe332eab831c23b3",
+      "sourceName": "contracts/DataEscrow.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "DataEscrow",
+        "IERC20",
+        "ReentrancyGuard"
+      ]
+    }
+  }
+}

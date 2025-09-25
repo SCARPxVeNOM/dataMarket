@@ -1,0 +1,190 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Data Wallet Marketplace</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 40px; color: #111; }
+      .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+      h1 { margin-bottom: 8px; }
+      h2 { margin: 16px 0 8px; }
+      .card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; }
+      input, select, textarea, button { padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; width: 100%; box-sizing: border-box; }
+      button { background: #111827; color: white; cursor: pointer; }
+      button:hover { background: #0b1220; }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .muted { color: #6b7280; font-size: 12px; }
+      .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #eef2ff; color: #3730a3; font-size: 12px; }
+      .stack > * { margin-bottom: 12px; }
+      .stack > *:last-child { margin-bottom: 0; }
+    </style>
+  </head>
+  <body>
+    <h1>Data Wallet Marketplace</h1>
+    <p class="muted">Prototype UI — integrate the AIR Kit widget in the consent flow.</p>
+
+    <div class="wrap">
+      <div class="card">
+        <h2>Buyer — Create Request</h2>
+        <div class="stack">
+          <label>
+            Attributes needed
+            <textarea id="attributes" rows="3" placeholder='e.g. { "ageRange": "18-25", "country": "IN", "interest": "gaming" }'></textarea>
+          </label>
+          <div class="row">
+            <label>
+              Price per proof (wei)
+              <input id="price" type="number" placeholder="1000000000000000" />
+            </label>
+            <label>
+              Audience size
+              <input id="size" type="number" placeholder="1000" />
+            </label>
+          </div>
+          <label>
+            Pay token
+            <select id="token">
+              <option value="native">Native</option>
+              <option value="erc20">ERC-20 (coming soon)</option>
+            </select>
+          </label>
+          <button id="create">Create Request & Deposit</button>
+          <div class="muted">On deposit, backend issues an escrowId and emits an on-chain deposit event.</div>
+          <div id="buyerLog" class="muted"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>User — Consent & Prove</h2>
+        <div class="stack">
+          <span class="badge">Incoming request</span>
+          <div id="requestPreview" class="muted">No request yet.</div>
+          <button id="consent">Open AIR Kit Widget</button>
+          <div class="muted">After consent, the widget returns a proof bound to escrowId which your frontend posts to /proof-callback.</div>
+          <div id="userLog" class="muted"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { AirService, BUILD_ENV } from '@mocanetwork/airkit';
+
+      const buyerLog = document.getElementById('buyerLog');
+      const userLog = document.getElementById('userLog');
+      const requestPreview = document.getElementById('requestPreview');
+
+      let currentEscrowId = null;
+      let currentAttributes = null;
+      let airService = null;
+      let authToken = null;
+
+      // Initialize AIR Kit SDK
+      async function initAIRKit() {
+        try {
+          // Get auth token from backend
+          const response = await fetch('http://localhost:3000/auth-token');
+          const { authToken: token } = await response.json();
+          authToken = token;
+
+          // Initialize AIR Kit
+          airService = new AirService({
+            partnerId: '61f6379f-9145-4da8-a2d7-f6628343601c'
+          });
+
+          await airService.init({
+            buildEnv: BUILD_ENV.SANDBOX,
+            enableLogging: true
+          });
+
+          log(userLog, 'AIR Kit initialized successfully');
+        } catch (error) {
+          log(userLog, 'AIR Kit init failed: ' + error.message);
+        }
+      }
+
+      // Initialize on page load
+      initAIRKit();
+
+      function log(el, msg) {
+        el.textContent = msg;
+      }
+
+      document.getElementById('create').onclick = async () => {
+        const attrs = document.getElementById('attributes').value || '{}';
+        const price = Number(document.getElementById('price').value || 0);
+        const size = Number(document.getElementById('size').value || 0);
+        currentAttributes = attrs;
+
+        // Generate an escrowId client-side for demo (in prod, backend issues it)
+        const escrowId = '0x' + crypto.getRandomValues(new Uint8Array(32)).reduce((a, b) => a + b.toString(16).padStart(2, '0'), '');
+        currentEscrowId = escrowId;
+        requestPreview.textContent = `escrowId: ${escrowId}, price: ${price}, size: ${size}, attrs: ${attrs}`;
+        log(buyerLog, 'Request drafted. In a real app, deposit to escrow contract now.');
+      };
+
+      document.getElementById('consent').onclick = async () => {
+        if (!currentEscrowId) {
+          return log(userLog, 'No request to respond to.');
+        }
+
+        try {
+          if (!airService) {
+            throw new Error('AIR Kit not initialized');
+          }
+
+          // Login user with Partner JWT
+          log(userLog, 'Logging in with AIR Kit...');
+          const loginResult = await airService.login({ authToken });
+          log(userLog, 'Login successful: ' + loginResult.user.abstractAccountAddress);
+
+          // Get user info
+          const userInfo = await airService.getUserInfo();
+          log(userLog, 'User info: ' + JSON.stringify(userInfo.user));
+
+          // For now, create a demo proof since credential verification isn't fully implemented
+          // In production, you'd use airService.verifyCredential() or similar
+          const proof = {
+            type: 'air-kit-proof',
+            nonce: currentEscrowId,
+            attributes: currentAttributes,
+            userAddress: userInfo.user.abstractAccountAddress,
+            partnerUserId: userInfo.partnerUserId
+          };
+
+          // Send proof to backend for verification
+          const resp = await fetch('http://localhost:3000/proof-callback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              escrowId: currentEscrowId, 
+              proof, 
+              userAddress: userInfo.user.abstractAccountAddress,
+              attributes: currentAttributes 
+            })
+          });
+          const json = await resp.json();
+          log(userLog, 'Backend response: ' + JSON.stringify(json));
+
+        } catch (e) {
+          log(userLog, 'AIR Kit flow failed: ' + e.message);
+          // Fallback to demo proof
+          const proof = { type: 'demo-zk-proof', nonce: currentEscrowId, attributes: currentAttributes };
+          try {
+            const resp = await fetch('http://localhost:3000/proof-callback', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ escrowId: currentEscrowId, proof, userAddress: '0xUser' , attributes: currentAttributes })
+            });
+            const json = await resp.json();
+            log(userLog, 'Demo proof response: ' + JSON.stringify(json));
+          } catch (fallbackError) {
+            log(userLog, 'Fallback also failed: ' + fallbackError.message);
+          }
+        }
+      };
+    </script>
+  </body>
+  </html>
+
+
