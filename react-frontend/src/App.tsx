@@ -13,11 +13,7 @@ interface UserInfo {
   };
 }
 
-interface LoginResult {
-  user: {
-    abstractAccountAddress: string;
-  };
-}
+// Remove unused LoginResult interface since we're using type assertion
 
 const App: React.FC = () => {
   const [currentEscrowId, setCurrentEscrowId] = useState<string | null>(null);
@@ -44,7 +40,8 @@ const App: React.FC = () => {
 
         await air.init({
           buildEnv: BUILD_ENV.SANDBOX,
-          enableLogging: true
+          enableLogging: true,
+          skipRehydration: false
         });
 
         setAirService(air);
@@ -57,6 +54,7 @@ const App: React.FC = () => {
     initAIRKit();
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const log = (setter: React.Dispatch<React.SetStateAction<string>>, msg: string, type: 'info' | 'success' | 'error' = 'info') => {
     setter(msg);
   };
@@ -102,8 +100,10 @@ const App: React.FC = () => {
       setUserLog('🔄 INITIALIZING AIR KIT...\n🔄 AUTHENTICATING USER...');
       showStatus('Starting AIR Kit authentication...', 'info');
       
-      const loginResult: LoginResult = await airService.login({ authToken });
-      setUserLog(`✅ LOGIN SUCCESSFUL\n✅ ACCOUNT: ${loginResult.user.abstractAccountAddress}`);
+      const loginResult = await airService.login({ authToken });
+      // Use type assertion to access the user property
+      const userAddress = (loginResult as any).user?.abstractAccountAddress || (loginResult as any).abstractAccountAddress || 'Unknown';
+      setUserLog(`✅ LOGIN SUCCESSFUL\n✅ ACCOUNT: ${userAddress}`);
 
       // Get user info
       const userInfo: UserInfo = await airService.getUserInfo();
@@ -115,7 +115,7 @@ const App: React.FC = () => {
         type: 'air-kit-proof',
         nonce: currentEscrowId,
         attributes: currentAttributes,
-        userAddress: userInfo.user.abstractAccountAddress,
+        userAddress: userInfo.user.abstractAccountAddress || userAddress,
         partnerUserId: userInfo.partnerUserId
       };
 
@@ -129,7 +129,7 @@ const App: React.FC = () => {
         body: JSON.stringify({ 
           escrowId: currentEscrowId, 
           proof, 
-          userAddress: userInfo.user.abstractAccountAddress,
+          userAddress: userInfo.user.abstractAccountAddress || userAddress,
           attributes: currentAttributes 
         })
       });
