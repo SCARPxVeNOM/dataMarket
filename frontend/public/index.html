@@ -5,64 +5,274 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Data Wallet Marketplace</title>
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 40px; color: #111; }
-      .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
-      h1 { margin-bottom: 8px; }
-      h2 { margin: 16px 0 8px; }
-      .card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; }
-      input, select, textarea, button { padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; width: 100%; box-sizing: border-box; }
-      button { background: #111827; color: white; cursor: pointer; }
-      button:hover { background: #0b1220; }
-      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-      .muted { color: #6b7280; font-size: 12px; }
-      .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #eef2ff; color: #3730a3; font-size: 12px; }
-      .stack > * { margin-bottom: 12px; }
-      .stack > *:last-child { margin-bottom: 0; }
+      * { box-sizing: border-box; }
+      
+      body { 
+        font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        margin: 0; 
+        padding: 20px;
+        background: #fff;
+        color: #000;
+        min-height: 100vh;
+        line-height: 1.6;
+      }
+      
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      
+      .header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 20px;
+        border: 4px solid #000;
+        background: #fff;
+        position: relative;
+      }
+      
+      .header::before {
+        content: '';
+        position: absolute;
+        top: -4px;
+        left: -4px;
+        right: -4px;
+        bottom: -4px;
+        background: linear-gradient(45deg, #ff0080, #00ff00, #0080ff, #ff8000);
+        z-index: -1;
+        animation: borderGlow 3s ease-in-out infinite;
+      }
+      
+      @keyframes borderGlow {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+      }
+      
+      h1 { 
+        font-size: 3rem;
+        font-weight: 900;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: -2px;
+        color: #000;
+        text-shadow: 4px 4px 0px #ff0080;
+      }
+      
+      .subtitle {
+        font-size: 1.2rem;
+        margin-top: 10px;
+        color: #666;
+        font-weight: 300;
+      }
+      
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 40px;
+      }
+      
+      .card {
+        background: #fff;
+        border: 3px solid #000;
+        padding: 30px;
+        position: relative;
+        transition: all 0.3s ease;
+      }
+      
+      .card:hover {
+        transform: translate(-5px, -5px);
+        box-shadow: 10px 10px 0px #ff0080;
+      }
+      
+      .card::before {
+        content: '';
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 20px;
+        height: 20px;
+        background: #000;
+        clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+      }
+      
+      h2 {
+        font-size: 1.8rem;
+        margin: 0 0 20px 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #ff0080;
+      }
+      
+      .form-group {
+        margin-bottom: 20px;
+      }
+      
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #000;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+      }
+      
+      input, select, textarea {
+        width: 100%;
+        padding: 15px;
+        background: #fff;
+        border: 3px solid #000;
+        color: #000;
+        font-family: inherit;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+      
+      input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: #ff0080;
+        box-shadow: 0 0 0 3px rgba(255, 0, 128, 0.2);
+        transform: translate(-2px, -2px);
+      }
+      
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+      
+      button {
+        background: #fff;
+        color: #000;
+        border: 3px solid #000;
+        padding: 15px 30px;
+        font-family: inherit;
+        font-size: 1.1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      button:hover {
+        background: #00ff00;
+        color: #000;
+        transform: translate(-2px, -2px);
+        box-shadow: 5px 5px 0px #ff0080;
+      }
+      
+      button:active {
+        transform: translate(0, 0);
+        box-shadow: 2px 2px 0px #ff0080;
+      }
+      
+      .badge {
+        display: inline-block;
+        background: #ff0080;
+        color: #000;
+        padding: 5px 15px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        margin-bottom: 15px;
+      }
+      
+      .log {
+        background: #f8f8f8;
+        border: 2px solid #000;
+        padding: 15px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        color: #000;
+        min-height: 60px;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      
+      .status {
+        padding: 10px;
+        margin: 10px 0;
+        border-left: 4px solid #000;
+        background: rgba(0, 0, 0, 0.05);
+        font-weight: 600;
+      }
+      
+      .error {
+        border-left-color: #ff0080;
+        background: rgba(255, 0, 128, 0.1);
+        color: #ff0080;
+      }
+      
+      .success {
+        border-left-color: #000;
+        background: rgba(0, 0, 0, 0.05);
+        color: #000;
+      }
+      
+      @media (max-width: 768px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        
+        h1 {
+          font-size: 2rem;
+        }
+        
+        .row {
+          grid-template-columns: 1fr;
+        }
+      }
     </style>
   </head>
   <body>
-    <h1>Data Wallet Marketplace</h1>
-    <p class="muted">Prototype UI — integrate the AIR Kit widget in the consent flow.</p>
-
-    <div class="wrap">
-      <div class="card">
-        <h2>Buyer — Create Request</h2>
-        <div class="stack">
-          <label>
-            Attributes needed
-            <textarea id="attributes" rows="3" placeholder='e.g. { "ageRange": "18-25", "country": "IN", "interest": "gaming" }'></textarea>
-          </label>
-          <div class="row">
-            <label>
-              Price per proof (wei)
-              <input id="price" type="number" placeholder="1000000000000000" />
-            </label>
-            <label>
-              Audience size
-              <input id="size" type="number" placeholder="1000" />
-            </label>
-          </div>
-          <label>
-            Pay token
-            <select id="token">
-              <option value="native">Native</option>
-              <option value="erc20">ERC-20 (coming soon)</option>
-            </select>
-          </label>
-          <button id="create">Create Request & Deposit</button>
-          <div class="muted">On deposit, backend issues an escrowId and emits an on-chain deposit event.</div>
-          <div id="buyerLog" class="muted"></div>
-        </div>
+    <div class="container">
+      <div class="header">
+        <h1>DATA WALLET</h1>
+        <div class="subtitle">MONETIZE YOUR DATA • PRIVACY-FIRST • ZERO-KNOWLEDGE PROOFS</div>
       </div>
 
-      <div class="card">
-        <h2>User — Consent & Prove</h2>
-        <div class="stack">
-          <span class="badge">Incoming request</span>
-          <div id="requestPreview" class="muted">No request yet.</div>
-          <button id="consent">Open AIR Kit Widget</button>
-          <div class="muted">After consent, the widget returns a proof bound to escrowId which your frontend posts to /proof-callback.</div>
-          <div id="userLog" class="muted"></div>
+      <div class="grid">
+        <div class="card">
+          <h2>BUYER PORTAL</h2>
+          <div class="form-group">
+            <label>ATTRIBUTES NEEDED</label>
+            <textarea id="attributes" rows="4" placeholder='{ "ageRange": "18-25", "country": "IN", "interest": "gaming" }'></textarea>
+          </div>
+          <div class="row">
+            <div class="form-group">
+              <label>PRICE PER PROOF (WEI)</label>
+              <input id="price" type="number" placeholder="1000000000000000" />
+            </div>
+            <div class="form-group">
+              <label>AUDIENCE SIZE</label>
+              <input id="size" type="number" placeholder="1000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>PAYMENT TOKEN</label>
+            <select id="token">
+              <option value="native">NATIVE MOCA</option>
+              <option value="erc20">ERC-20 (COMING SOON)</option>
+            </select>
+          </div>
+          <button id="create">CREATE REQUEST & DEPOSIT</button>
+          <div class="status">Backend issues escrowId and emits on-chain deposit event</div>
+          <div class="log" id="buyerLog">Ready to create request...</div>
+        </div>
+
+        <div class="card">
+          <h2>USER CONSENT</h2>
+          <div class="badge">INCOMING REQUEST</div>
+          <div class="log" id="requestPreview">No request yet. Create one on the left.</div>
+          <button id="consent">OPEN AIR KIT WIDGET</button>
+          <div class="status">AIR Kit returns ZK proof bound to escrowId</div>
+          <div class="log" id="userLog">Ready for consent...</div>
         </div>
       </div>
     </div>
@@ -106,8 +316,17 @@
       // Initialize on page load
       initAIRKit();
 
-      function log(el, msg) {
+      function log(el, msg, type = 'info') {
         el.textContent = msg;
+        el.className = `log ${type}`;
+      }
+      
+      function showStatus(el, msg, type = 'info') {
+        const status = document.createElement('div');
+        status.className = `status ${type}`;
+        status.textContent = msg;
+        el.parentNode.insertBefore(status, el);
+        setTimeout(() => status.remove(), 5000);
       }
 
       document.getElementById('create').onclick = async () => {
@@ -116,16 +335,23 @@
         const size = Number(document.getElementById('size').value || 0);
         currentAttributes = attrs;
 
+        if (!attrs || attrs === '{}') {
+          showStatus(buyerLog, 'Please specify attributes needed', 'error');
+          return;
+        }
+
         // Generate an escrowId client-side for demo (in prod, backend issues it)
         const escrowId = '0x' + crypto.getRandomValues(new Uint8Array(32)).reduce((a, b) => a + b.toString(16).padStart(2, '0'), '');
         currentEscrowId = escrowId;
-        requestPreview.textContent = `escrowId: ${escrowId}, price: ${price}, size: ${size}, attrs: ${attrs}`;
-        log(buyerLog, 'Request drafted. In a real app, deposit to escrow contract now.');
+        
+        requestPreview.textContent = `ESCROW ID: ${escrowId}\nPRICE: ${price} wei\nAUDIENCE: ${size} users\nATTRIBUTES: ${attrs}`;
+        log(buyerLog, '✓ REQUEST DRAFTED\n✓ ESCROW ID GENERATED\n✓ READY FOR DEPOSIT', 'success');
+        showStatus(buyerLog, 'Request created successfully! Ready for user consent.', 'success');
       };
 
       document.getElementById('consent').onclick = async () => {
         if (!currentEscrowId) {
-          return log(userLog, 'No request to respond to.');
+          return log(userLog, '❌ NO REQUEST TO RESPOND TO\nCreate a request first.', 'error');
         }
 
         try {
@@ -134,13 +360,15 @@
           }
 
           // Login user with Partner JWT
-          log(userLog, 'Logging in with AIR Kit...');
+          log(userLog, '🔄 INITIALIZING AIR KIT...\n🔄 AUTHENTICATING USER...', 'info');
+          showStatus(userLog, 'Starting AIR Kit authentication...', 'info');
+          
           const loginResult = await airService.login({ authToken });
-          log(userLog, 'Login successful: ' + loginResult.user.abstractAccountAddress);
+          log(userLog, `✅ LOGIN SUCCESSFUL\n✅ ACCOUNT: ${loginResult.user.abstractAccountAddress}`, 'success');
 
           // Get user info
           const userInfo = await airService.getUserInfo();
-          log(userLog, 'User info: ' + JSON.stringify(userInfo.user));
+          log(userLog, `✅ USER INFO RETRIEVED\n✅ PARTNER ID: ${userInfo.partnerUserId}\n✅ EMAIL: ${userInfo.user.email || 'N/A'}`, 'success');
 
           // For now, create a demo proof since credential verification isn't fully implemented
           // In production, you'd use airService.verifyCredential() or similar
@@ -151,6 +379,9 @@
             userAddress: userInfo.user.abstractAccountAddress,
             partnerUserId: userInfo.partnerUserId
           };
+
+          log(userLog, '🔄 GENERATING ZK PROOF...\n🔄 SENDING TO BACKEND...', 'info');
+          showStatus(userLog, 'Generating proof and verifying...', 'info');
 
           // Send proof to backend for verification
           const resp = await fetch('http://localhost:3000/proof-callback', {
@@ -164,22 +395,32 @@
             })
           });
           const json = await resp.json();
-          log(userLog, 'Backend response: ' + JSON.stringify(json));
+          
+          if (json.ok) {
+            log(userLog, `✅ PROOF VERIFIED\n✅ FUNDS RELEASED\n✅ TX HASH: ${json.txHash}`, 'success');
+            showStatus(userLog, 'Success! Funds released to your account.', 'success');
+          } else {
+            log(userLog, `❌ VERIFICATION FAILED\n❌ REASON: ${json.error || 'Unknown error'}`, 'error');
+            showStatus(userLog, 'Verification failed. Please try again.', 'error');
+          }
 
         } catch (e) {
-          log(userLog, 'AIR Kit flow failed: ' + e.message);
+          log(userLog, `❌ AIR KIT FLOW FAILED\n❌ ERROR: ${e.message}`, 'error');
+          showStatus(userLog, 'AIR Kit failed, trying fallback...', 'error');
+          
           // Fallback to demo proof
           const proof = { type: 'demo-zk-proof', nonce: currentEscrowId, attributes: currentAttributes };
           try {
+            log(userLog, '🔄 FALLBACK: DEMO PROOF\n🔄 SENDING TO BACKEND...', 'info');
             const resp = await fetch('http://localhost:3000/proof-callback', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ escrowId: currentEscrowId, proof, userAddress: '0xUser' , attributes: currentAttributes })
             });
             const json = await resp.json();
-            log(userLog, 'Demo proof response: ' + JSON.stringify(json));
+            log(userLog, `✅ DEMO PROOF RESPONSE\n✅ RESULT: ${JSON.stringify(json)}`, 'success');
           } catch (fallbackError) {
-            log(userLog, 'Fallback also failed: ' + fallbackError.message);
+            log(userLog, `❌ FALLBACK FAILED\n❌ ERROR: ${fallbackError.message}`, 'error');
           }
         }
       };
