@@ -67,10 +67,10 @@ app.get('/auth-token', (_req, res) => {
   }
 });
 
-// Callback after user consents and AIR Kit returns a proof
+// Callback after user joins data farming and AIR Kit returns a proof
 app.post('/proof-callback', async (req, res) => {
   try {
-    const { escrowId, proof, userAddress, attributes } = req.body || {};
+    const { escrowId, proof, userAddress, attributes, farmingSession } = req.body || {};
     if (!escrowId || !proof || !userAddress) {
       return res.status(400).json({ ok: false, error: 'missing fields' });
     }
@@ -106,6 +106,76 @@ app.post('/proof-callback', async (req, res) => {
     return res.json({ ok: true, released: true, txHash: receipt?.hash });
   } catch (err) {
     console.error('proof-callback error', err);
+    return res.status(500).json({ ok: false, error: String(err) });
+  }
+});
+
+// Data farming session management
+app.post('/farming-session', async (req, res) => {
+  try {
+    const { userId, dataType, duration, rewardRate, dataFields } = req.body || {};
+    
+    if (!userId || !dataType || !duration || !rewardRate) {
+      return res.status(400).json({ ok: false, error: 'missing farming parameters' });
+    }
+
+    // Create farming session with AIR Kit credentials
+    const farmingSession = {
+      sessionId: 'farm_' + Date.now(),
+      userId,
+      dataType,
+      duration: parseInt(duration),
+      rewardRate: parseInt(rewardRate),
+      dataFields: JSON.parse(dataFields || '{}'),
+      startTime: new Date().toISOString(),
+      status: 'active',
+      totalRewards: 0
+    };
+
+    // Store session (in production, use database)
+    console.log('Farming session created:', farmingSession);
+    
+    return res.json({ 
+      ok: true, 
+      farmingSession,
+      message: 'Data farming session started successfully'
+    });
+  } catch (err) {
+    console.error('farming-session error', err);
+    return res.status(500).json({ ok: false, error: String(err) });
+  }
+});
+
+// Daily farming rewards calculation
+app.post('/farming-rewards', async (req, res) => {
+  try {
+    const { sessionId, userAddress, dailyActivity } = req.body || {};
+    
+    if (!sessionId || !userAddress) {
+      return res.status(400).json({ ok: false, error: 'missing session parameters' });
+    }
+
+    // Calculate daily rewards based on activity and data quality
+    const baseReward = 10; // Base MOCA tokens per day
+    const activityMultiplier = Math.min(dailyActivity || 1, 3); // Max 3x multiplier
+    const dailyReward = baseReward * activityMultiplier;
+
+    // In production, this would interact with Moca Chain for token distribution
+    const rewardTx = {
+      hash: '0x' + Math.random().toString(16).substr(2, 64),
+      amount: dailyReward,
+      token: 'MOCA',
+      timestamp: new Date().toISOString()
+    };
+
+    return res.json({ 
+      ok: true, 
+      dailyReward,
+      rewardTx,
+      message: `Earned ${dailyReward} MOCA tokens for today's farming activity`
+    });
+  } catch (err) {
+    console.error('farming-rewards error', err);
     return res.status(500).json({ ok: false, error: String(err) });
   }
 });

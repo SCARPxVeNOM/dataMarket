@@ -64,25 +64,48 @@ const App: React.FC = () => {
     console.log(`${type.toUpperCase()}: ${msg}`);
   };
 
-  const handleCreateRequest = () => {
-    const attrs = (document.getElementById('attributes') as HTMLTextAreaElement)?.value || '{}';
-    const price = Number((document.getElementById('price') as HTMLInputElement)?.value || 0);
-    const size = Number((document.getElementById('size') as HTMLInputElement)?.value || 0);
+  const handleCreateRequest = async () => {
+    const dataType = (document.getElementById('dataType') as HTMLSelectElement)?.value || 'demographics';
+    const duration = Number((document.getElementById('farmingDuration') as HTMLInputElement)?.value || 30);
+    const rewardRate = Number((document.getElementById('rewardRate') as HTMLInputElement)?.value || 10);
+    const dataFields = (document.getElementById('dataFields') as HTMLTextAreaElement)?.value || '{}';
     
-    setCurrentAttributes(attrs);
+    setCurrentAttributes(dataFields);
 
-    if (!attrs || attrs === '{}') {
-      showStatus('Please specify attributes needed', 'error');
+    if (!dataFields || dataFields === '{}') {
+      showStatus('Please specify data fields to farm', 'error');
       return;
     }
 
-    // Generate an escrowId client-side for demo (in prod, backend issues it)
-    const escrowId = '0x' + crypto.getRandomValues(new Uint8Array(32)).reduce((a, b) => a + b.toString(16).padStart(2, '0'), '');
-    setCurrentEscrowId(escrowId);
-    
-    setRequestPreview(`ESCROW ID: ${escrowId}\nPRICE: ${price} wei\nAUDIENCE: ${size} users\nATTRIBUTES: ${attrs}`);
-    setBuyerLog('✓ REQUEST DRAFTED\n✓ ESCROW ID GENERATED\n✓ READY FOR DEPOSIT');
-    showStatus('Request created successfully! Ready for user consent.', 'success');
+    try {
+      // Create farming session
+      const response = await fetch('http://localhost:3000/farming-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 'user_' + Date.now(),
+          dataType,
+          duration,
+          rewardRate,
+          dataFields
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.ok) {
+        setCurrentEscrowId(result.farmingSession.sessionId);
+        setRequestPreview(`FARMING SESSION: ${result.farmingSession.sessionId}\nTYPE: ${dataType}\nDURATION: ${duration} days\nREWARD RATE: ${rewardRate} MOCA/day\nDATA FIELDS: ${dataFields}`);
+        setBuyerLog('✓ FARMING SESSION CREATED\n✓ REWARDS ENABLED\n✓ READY FOR FARMERS');
+        showStatus('Data farming session started! Ready for farmers to join.', 'success');
+      } else {
+        setBuyerLog(`❌ FARMING SESSION FAILED\n❌ ERROR: ${result.error}`);
+        showStatus('Failed to create farming session. Please try again.', 'error');
+      }
+    } catch (error) {
+      setBuyerLog(`❌ FARMING SESSION ERROR\n❌ ERROR: ${(error as Error).message}`);
+      showStatus('Error creating farming session. Please try again.', 'error');
+    }
   };
 
   const handleConsent = async () => {
@@ -167,57 +190,59 @@ const App: React.FC = () => {
   return (
     <div className="container">
       <div className="header">
-        <h1>DATA WALLET</h1>
-        <div className="subtitle">MONETIZE YOUR DATA • PRIVACY-FIRST • ZERO-KNOWLEDGE PROOFS</div>
+        <h1>DATA FARM</h1>
+        <div className="subtitle">CULTIVATE YOUR DATA • EARN REWARDS • PRIVACY-FIRST FARMING</div>
       </div>
 
       <div className="grid">
         <div className="card">
-          <h2>BUYER PORTAL</h2>
+          <h2>DATA FARMING DASHBOARD</h2>
           <div className="form-group">
-            <label htmlFor="attributes">ATTRIBUTES NEEDED</label>
-            <textarea 
-              id="attributes" 
-              rows={4} 
-              placeholder='{ "ageRange": "18-25", "country": "IN", "interest": "gaming" }'
-            />
+            <label htmlFor="dataType">DATA FARMING TYPE</label>
+            <select id="dataType">
+              <option value="demographics">Demographics & Profile</option>
+              <option value="behavior">Behavioral Patterns</option>
+              <option value="preferences">Preferences & Interests</option>
+              <option value="social">Social Connections</option>
+            </select>
           </div>
           <div className="row">
             <div className="form-group">
-              <label htmlFor="price">PRICE PER PROOF (WEI)</label>
+              <label htmlFor="farmingDuration">FARMING DURATION (DAYS)</label>
               <input 
-                id="price" 
+                id="farmingDuration" 
                 type="number" 
-                placeholder="1000000000000000" 
+                placeholder="30" 
               />
             </div>
             <div className="form-group">
-              <label htmlFor="size">AUDIENCE SIZE</label>
+              <label htmlFor="rewardRate">REWARD RATE (MOCA/DAY)</label>
               <input 
-                id="size" 
+                id="rewardRate" 
                 type="number" 
-                placeholder="1000" 
+                placeholder="10" 
               />
             </div>
           </div>
           <div className="form-group">
-            <label htmlFor="token">PAYMENT TOKEN</label>
-            <select id="token">
-              <option value="native">NATIVE MOCA</option>
-              <option value="erc20">ERC-20 (COMING SOON)</option>
-            </select>
+            <label htmlFor="dataFields">DATA FIELDS TO FARM</label>
+            <textarea 
+              id="dataFields" 
+              rows={3} 
+              placeholder='{ "age": "18-25", "location": "IN", "interests": ["gaming", "tech"], "activity": "daily" }'
+            />
           </div>
-          <button onClick={handleCreateRequest}>CREATE REQUEST & DEPOSIT</button>
-          <div className="status">Backend issues escrowId and emits on-chain deposit event</div>
+          <button onClick={handleCreateRequest}>START DATA FARMING</button>
+          <div className="status">Begin continuous data cultivation with privacy-preserving ZK proofs</div>
           <div className="log">{buyerLog}</div>
         </div>
 
         <div className="card">
-          <h2>USER CONSENT</h2>
-          <div className="badge">INCOMING REQUEST</div>
+          <h2>FARMER PORTAL</h2>
+          <div className="badge">ACTIVE FARMING SESSION</div>
           <div className="log">{requestPreview}</div>
-          <button onClick={handleConsent}>OPEN AIR KIT WIDGET</button>
-          <div className="status">AIR Kit returns ZK proof bound to escrowId</div>
+          <button onClick={handleConsent}>JOIN DATA FARM</button>
+          <div className="status">AIR Kit enables privacy-preserving data farming with ZK proofs</div>
           <div className="log">{userLog}</div>
         </div>
       </div>

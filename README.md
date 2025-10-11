@@ -1,6 +1,6 @@
-## Data Wallet Marketplace (AIR Kit) — Starter Kit
+## Data Farm - Privacy-First Data Cultivation Platform
 
-Privacy-preserving data monetization: users hold credentials in an AIR Kit wallet and rent out zero-knowledge proofs of attributes to buyers. Buyers deposit funds into escrow; upon proof verification, payouts are released to users and the platform takes a fee.
+A revolutionary data farming platform built on Moca Network, enabling users to cultivate and monetize their data through continuous participation, gamified rewards, and privacy-preserving zero-knowledge proofs. Users become "data farmers" who grow their data assets over time while earning $MOCA tokens for their participation.
 
 ### Architecture
 ```
